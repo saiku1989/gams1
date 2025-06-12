@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChillWork - Free Online Gaming Center</title>
+    <meta name="description" content="ChillWork Gaming Center - Free online games with multi-language support, featuring action, strategy, casual, racing and other game categories">
+    <meta name="keywords" content="free games,online games,HTML5 games,ChillWork,gaming center">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #000000;
+            font-family: 'Arial', sans-serif;
+        }
+        .nav-bar {
+            background-color: #1e40af;
+        }
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        .game-iframe {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            border-radius: 8px;
+        }
+        .fullscreen-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: black;
+        }
+        .ad-banner {
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            color: white;
+        }
+        .comment-section {
+            background: rgba(30, 64, 175, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-content {
+            background: #1f2937;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: hidden;
+        }
+        .preview-image {
+            transition: opacity 0.3s ease;
+        }
+        .preview-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .preview-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .preview-dot.active {
+            background: #3b82f6;
+        }
+        .preview-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .preview-nav:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        .preview-nav.prev {
+            left: 20px;
+        }
+        .preview-nav.next {
+            right: 20px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- 导航栏 -->
+    <nav class="nav-bar p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-white">🎮 ChillWork</h1>
+            </div>
+            
+            <!-- 语言切换 -->
+            <div class="flex items-center space-x-4">
+                <select id="languageSelect" class="bg-blue-600 text-white px-3 py-1 rounded">
+                    <option value="en" selected>English</option>
+                    <option value="zh">中文</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <!-- 搜索框 -->
+                <div class="relative">
+                                    <input type="text" id="searchInput" placeholder="Search games..." 
+                       class="bg-gray-800 text-white px-4 py-2 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- 广告横幅 -->
+        <div class="ad-banner">
+            <h2 class="text-xl font-bold mb-2" data-i18n="ad-title">🎮 Experience the Best Gaming Fun - Ad Space Available 🎮</h2>
+            <p data-i18n="ad-desc">Contact us to place ads and get more exposure opportunities!</p>
+        </div>
+
+        <!-- 游戏区域 -->
+        <div id="gameArea" class="mb-8">
+            <!-- 游戏列表视图 -->
+            <div id="gameList" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- 游戏卡片将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 游戏播放视图 -->
+            <div id="gamePlayer" class="hidden">
+                <div class="bg-gray-900 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="currentGameTitle" class="text-2xl font-bold"></h2>
+                        <div class="flex space-x-2">
+                            <button id="fullscreenBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                                <i class="fas fa-expand"></i> <span data-i18n="fullscreen">Fullscreen</span>
+                            </button>
+                            <button id="backToListBtn" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">
+                                <i class="fas fa-arrow-left"></i> <span data-i18n="back">Back</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="gameDescription" class="text-gray-300 mb-4"></div>
+                    <div id="gameContainer" class="relative">
+                        <iframe id="gameIframe" class="game-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏分类过滤器 -->
+        <div class="mb-8">
+            <h3 class="text-xl font-bold mb-4" data-i18n="categories">Game Categories</h3>
+            <div class="flex flex-wrap gap-2">
+                <button class="category-btn bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded" data-category="all">
+                    <span data-i18n="all-games">All Games</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="action">
+                    <span data-i18n="action">Action</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="strategy">
+                    <span data-i18n="strategy">Strategy</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="casual">
+                    <span data-i18n="casual">Casual</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="racing">
+                    <span data-i18n="racing">Racing</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="survival">
+                    <span data-i18n="survival">Survival</span>
+                </button>
+                <button class="category-btn bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded" data-category="shooter">
+                    <span data-i18n="shooter">Shooter</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 留言板 -->
+        <div class="comment-section">
+            <h3 class="text-xl font-bold mb-4" data-i18n="comments">Player Comments</h3>
+            
+            <!-- 发表留言表单 -->
+            <div class="mb-6">
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="commentName" placeholder="Nickname" 
+                           class="bg-gray-800 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="email" id="commentEmail" placeholder="Email (optional)" 
+                           class="bg-gray-800 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <textarea id="commentText" placeholder="Write about your gaming experience..." rows="3"
+                          class="w-full bg-gray-800 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"></textarea>
+                <button id="submitComment" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded">
+                    <span data-i18n="submit-comment">Submit Comment</span>
+                </button>
+            </div>
+
+            <!-- 留言列表 -->
+            <div id="commentsList">
+                <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <strong class="text-blue-400">Game Master</strong>
+                        <span class="text-gray-500 text-sm">2024-01-15 14:30</span>
+                    </div>
+                    <p class="text-gray-300">The games on this website are amazing! Zombie Horde kept me playing for hours, highly recommended!</p>
+                </div>
+                
+                <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <strong class="text-blue-400">Racing Fan</strong>
+                        <span class="text-gray-500 text-sm">2024-01-15 12:15</span>
+                    </div>
+                    <p class="text-gray-300">Racing Limits has great graphics and controls, runs smoothly on mobile too!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关于我们 -->
+        <div class="bg-gray-900 rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4" data-i18n="about-us">About Us</h3>
+            <p class="text-gray-300 mb-4" data-i18n="about-desc">
+                ChillWork is dedicated to providing players worldwide with the highest quality free online gaming experience. We carefully select games to ensure each one brings you unlimited fun.
+            </p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold mb-2" data-i18n="game-categories">Game Categories</h4>
+                    <ul class="text-gray-300 space-y-1">
+                        <li>• <span data-i18n="action-games">Action Games</span></li>
+                        <li>• <span data-i18n="strategy-games">Strategy Games</span></li>
+                        <li>• <span data-i18n="casual-games">Casual Games</span></li>
+                        <li>• <span data-i18n="racing-games">Racing Games</span></li>
+                        <li>• <span data-i18n="survival-games">Survival Games</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-2" data-i18n="contact-us">Contact Us</h4>
+                    <p class="text-gray-300">
+                        Email: <a href="mailto:zephyr89m@gmail.com" class="text-blue-400 hover:text-blue-300">zephyr89m@gmail.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏预览模态框 -->
+    <div id="previewModal" class="preview-modal hidden">
+        <div class="preview-content">
+            <div class="relative">
+                <!-- 关闭按钮 -->
+                <button id="closePreview" class="absolute top-4 right-4 z-10 bg-black bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <!-- 图片展示区 -->
+                <div class="relative">
+                    <div id="previewImageContainer" class="relative">
+                        <!-- 预览图片将动态插入这里 -->
+                    </div>
+                    
+                    <!-- 导航按钮 -->
+                    <button id="prevImage" class="preview-nav prev">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextImage" class="preview-nav next">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <!-- 游戏信息 -->
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="previewGameTitle" class="text-2xl font-bold text-white"></h3>
+                        <span id="previewGameCategory" class="bg-blue-600 text-white px-3 py-1 rounded text-sm"></span>
+                    </div>
+                    
+                    <p id="previewGameDescription" class="text-gray-300 mb-4"></p>
+                    
+                    <!-- 图片指示器 -->
+                    <div id="previewDots" class="preview-dots mb-4">
+                        <!-- 指示器点将动态生成 -->
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="flex gap-3">
+                        <button id="playFromPreview" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold">
+                            <i class="fas fa-play mr-2"></i>
+                            <span data-i18n="play-now">Play Now</span>
+                        </button>
+                        <button id="fullscreenFromPreview" class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 版权信息 -->
+    <footer class="bg-gray-900 text-center py-6">
+        <p class="text-gray-400">
+            © 2024 ChillWork. <span data-i18n="rights">All rights reserved. All game content copyrights belong to their original authors.</span>
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

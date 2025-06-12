@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+
+Sitemap: https://www.chillwork.cfd/sitemap.xml
+
+# ChillWork Gaming Center
+# Free online games with multi-language support 
